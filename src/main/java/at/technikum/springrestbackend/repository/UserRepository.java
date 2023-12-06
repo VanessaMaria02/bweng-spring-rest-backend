@@ -21,6 +21,9 @@ public interface UserRepository extends CrudRepository<User, UUID> {
    List<User> findByCountry(String country);
 
    List<User> findByStatus(boolean status);
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
     @Override
     List<User> findAll();
 }

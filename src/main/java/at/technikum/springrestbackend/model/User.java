@@ -2,12 +2,13 @@ package at.technikum.springrestbackend.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+
 
 
 import java.util.UUID;
@@ -27,30 +28,35 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank
+    @NotBlank(message = "Username is required")
     private String username;
-    @NotBlank
+
+    @NotBlank(message = "Password is required")
     private String password;
-    @Min(0)
-    private int role;
-    @NotBlank
+
+    @NotBlank(message = "Role is required")
+    private String role;
+
+    @NotBlank(message = "First name is required")
     private String firstname;
-    @NotBlank
+
+    @NotBlank(message = "Last name is required")
     private String lastname;
 
-    @Enumerated(EnumType.STRING) // Stellt sicher, dass die Datenbank den Enum-Wert als Zeichenkette speichert
+    @Enumerated(EnumType.STRING)
     private Salutation salutation;
-    @Email
+
+    @Email(message = "Invalid email address")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Country is required")
     private String country;
 
     private String profilePicture;
 
     private boolean status;
 
-    public User (String username, String password, int role, String firstname,
+    public User (String username, String password, String role, String firstname,
                  String lastname, Salutation salutation, String email,
                  String country, String profilePicture, boolean status){
         this.username = username;
@@ -64,5 +70,7 @@ public class User {
         this.profilePicture = profilePicture;
         this.status = status;
     }
+
+
 
 }
