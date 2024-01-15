@@ -1,7 +1,6 @@
 package at.technikum.springrestbackend.repository;
 
 import at.technikum.springrestbackend.model.Orders;
-import at.technikum.springrestbackend.model.Phone;
 import at.technikum.springrestbackend.model.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +16,4 @@ public interface OrderRepository extends CrudRepository<Orders, UUID> {
 
     List<Orders> findByUser(User user);
     void deleteOrderById(UUID id);
-
-
 }

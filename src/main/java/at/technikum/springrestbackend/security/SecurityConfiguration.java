@@ -69,11 +69,10 @@ public class SecurityConfiguration {
                                 .requestMatchers("/orders/{id}").hasAnyRole("admin", "user")
                                 .requestMatchers("/orders/{user}").hasAnyRole("admin", "user")
                                 .requestMatchers("/createOrder").hasAnyRole("admin", "user")
-                                .requestMatchers("/deleteOrder/{orderId}").hasAnyRole("admin", "user")
+                                .requestMatchers("/deleteOrder/{orderId}").hasRole("admin")
                                 .requestMatchers("/users").hasRole("admin")
-                                .requestMatchers("/users/username/{username}").hasAnyRole("admin", "user")
                                 .requestMatchers("/users/*").hasRole("admin")
-                                .requestMatchers("user/role/{username}").hasRole("admin")
+                                .requestMatchers("user/role/{username}").permitAll() //do need for login or navbar in frontend?
                                 .requestMatchers("/register").permitAll()
                                 .requestMatchers("/deleteUser/{id}").hasAnyRole("admin", "user")
                                 .requestMatchers("/updateUser/{name}").hasAnyRole("admin", "user")

@@ -2,7 +2,6 @@ package at.technikum.springrestbackend.security.jwt;
 
 
 import at.technikum.springrestbackend.security.user.UserPrincipalAuthenticationToken;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,19 +30,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            extractTokenFromRequest(request)
-                    .map(jwtDecoder::decode)
-                    .map(jwtToPrincipalConverter::convert)
-                    .map(UserPrincipalAuthenticationToken::new)
-                    .ifPresent(authentication -> SecurityContextHolder.getContext().setAuthentication(authentication));
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
+        extractTokenFromRequest(request)
+                .map(jwtDecoder::decode)
+                .map(jwtToPrincipalConverter::convert)
+                .map(UserPrincipalAuthenticationToken::new)
+                .ifPresent(authentication -> SecurityContextHolder.getContext().setAuthentication(authentication));
 
-            filterChain.doFilter(request, response);
-        } catch (TokenExpiredException e) {
-            // Handle TokenExpiredException
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The JWT Token has expired");
-        }
+        filterChain.doFilter(request, response);
+
     }
 
     private Optional<String> extractTokenFromRequest(HttpServletRequest request){

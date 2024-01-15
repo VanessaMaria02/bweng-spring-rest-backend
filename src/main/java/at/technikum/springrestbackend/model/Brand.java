@@ -2,7 +2,6 @@ package at.technikum.springrestbackend.model;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
+
 
 @Entity
 @Getter
@@ -40,18 +40,16 @@ public class Brand {
     @UpdateTimestamp
     private Instant lastUpdatedOn;
 
- //Not NotBlank because will be set manually
-    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
+    @NotBlank(message = "User required")
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private User createdBy;
-
-   // @ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "user_id")
-    //private User user;
 
     public Brand(String name, String picturePath, User user) {
         this.name = name;
         this.picturePath = picturePath;
         this.createdBy = user;
     }
+
 }
+
+

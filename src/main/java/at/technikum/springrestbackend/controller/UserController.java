@@ -1,20 +1,23 @@
 package at.technikum.springrestbackend.controller;
 
 import at.technikum.springrestbackend.model.User;
-import at.technikum.springrestbackend.security.jwt.JwtToPrincipalConverter;
 import at.technikum.springrestbackend.service.UserService;
 import at.technikum.springrestbackend.util.UserValidator;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -81,7 +84,43 @@ public class UserController {
         return userService.getUsersCountry(country);
     }
 
+    @PostMapping("/uploadImage/{username}")
+    public ResponseEntity<?> uploadImage(@PathVariable String username, @RequestParam("image") MultipartFile file) {
+        // Check if the file is not empty
+        if (file.isEmpty()) {
+            return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
+        }
 
+        try {
+            // Define the location where you want to save the files
+            String directoryPath = "uploads"; // Replace with your directory path
+
+            // Create the directory if it doesn't exist
+            Path directory = Paths.get(directoryPath);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+                System.out.println("test");
+            }
+            else {
+                System.out.println("test2");
+
+            }
+
+
+             String fileName = file.getOriginalFilename();
+            Path filePath = directory.resolve(fileName);
+
+             Files.copy(file.getInputStream(), filePath);
+             User user = userService.getUserByUsername(username);
+             user.setProfilePicture(filePath.toString());
+            return handleUserUpdate(username, user);
+
+
+
+        } catch (IOException ex) {
+            return null;
+         }
+    }
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@RequestBody @Valid User user) {
@@ -90,16 +129,8 @@ public class UserController {
 
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
-        try{
-            User userToDelete = userService.getUser(id);
-            return handleUserDeletion(userToDelete);
-        } catch (TokenExpiredException e){
-            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
-        }catch (Exception e) {
-            // Handle other exceptions
-            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
+        User userToDelete = userService.getUser(id);
+        return handleUserDeletion(userToDelete);
     }
 
     @PutMapping("/updateUser/{name}")
@@ -115,16 +146,9 @@ public class UserController {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userService.createUser(user);
 
-        try {
-            userService.createUser(user);
-            return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
-        }catch (TokenExpiredException e){
-            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
-        }catch (Exception e) {
-            // Handle other exceptions
-            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
     }
 
     private ResponseEntity<Object> handleUserDeletion(User userToDelete) {
@@ -135,47 +159,43 @@ public class UserController {
         userService.deleteUser(userToDelete.getId());
         return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
     }
+    public class UploadFileResponse {
+        private String fileName;
+        private String fileDownloadUri;
+        private String fileType;
+        private long size;
 
-    private ResponseEntity<Object> handleUserUpdate(String name, User updatedUser) {
-        String username = JwtToPrincipalConverter.getCurrentUsername();
-        String userRole = JwtToPrincipalConverter.getCurrentUserRole();
-
-
-        if(!Objects.equals(username, name) && !userRole.equals("ROLE_admin")){
-            return new ResponseEntity<>("Users can only edit there own Profile (except admins)", HttpStatus.UNAUTHORIZED);
+        public UploadFileResponse(String fileName, String fileDownloadUri, String fileType, long size) {
+            this.fileName = fileName;
+            this.fileDownloadUri = fileDownloadUri;
+            this.fileType = fileType;
+            this.size = size;
         }
 
-
-            int affectedRows = 0;
+        // Getters and setters
+    }
+    private ResponseEntity<Object> handleUserUpdate(String name, User updatedUser) {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
 
-        try{
-            affectedRows = userService.updateUserInfo(
-                    name,
-                    updatedUser.getUsername(),
-                    updatedUser.getPassword(),
-                    updatedUser.getRole(),
-                    updatedUser.getFirstname(),
-                    updatedUser.getLastname(),
-                    updatedUser.getSalutation(),
-                    updatedUser.getEmail(),
-                    updatedUser.getCountryCode(),
-                    updatedUser.getPostalCode(),
-                    updatedUser.getStreet(),
-                    updatedUser.getCity(),
-                    updatedUser.getHouseNumber(),
-                    updatedUser.getProfilePicture(),
-                    updatedUser.getStatus()
-            );
-        }catch (TokenExpiredException e){
-            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
-        }catch (Exception e) {
-            // Handle other exceptions
-            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
+        int affectedRows = userService.updateUserInfo(
+                name,
+                updatedUser.getUsername(),
+                updatedUser.getPassword(),
+                updatedUser.getRole(),
+                updatedUser.getFirstname(),
+                updatedUser.getLastname(),
+                updatedUser.getSalutation(),
+                updatedUser.getEmail(),
+                updatedUser.getCountryCode(),
+                updatedUser.getPostalCode(),
+                updatedUser.getStreet(),
+                updatedUser.getCity(),
+                updatedUser.getHouseNumber(),
+                updatedUser.getProfilePicture(),
+                updatedUser.getStatus()
+        );
 
         if (affectedRows > 0) {
             return new ResponseEntity<>("User info has been updated successfully", HttpStatus.OK);

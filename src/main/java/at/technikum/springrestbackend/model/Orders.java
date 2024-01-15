@@ -24,12 +24,12 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-   //does not need not blank because will be set manually
-    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @NotBlank (message = "User required")
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private  User user;
 
-   //does not need not blank because will be set manually
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @NotBlank (message = "Min one phone required")
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private List<Phone> phones = new ArrayList<>();
 
     private Timestamp timestamp;

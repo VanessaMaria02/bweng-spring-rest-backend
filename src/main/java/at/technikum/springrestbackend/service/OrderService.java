@@ -1,10 +1,8 @@
 package at.technikum.springrestbackend.service;
 
 import at.technikum.springrestbackend.model.Orders;
-import at.technikum.springrestbackend.model.Phone;
 import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.repository.OrderRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,10 +32,6 @@ public class OrderService {
     public Orders createOrder(Orders order) {
         return orderRepository.save(order);
     }
-
-
-
-    @Transactional
     public void deleteOrder(UUID id) {
         orderRepository.deleteOrderById(id);
     }

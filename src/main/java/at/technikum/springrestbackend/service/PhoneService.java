@@ -50,7 +50,6 @@ public class PhoneService {
     public Phone createPhone(Phone phone) {
         return phoneRepository.save(phone);
     }
-    @Transactional
     public void deletePhone(UUID id) {
         phoneRepository.deletePhoneById(id);
     }
