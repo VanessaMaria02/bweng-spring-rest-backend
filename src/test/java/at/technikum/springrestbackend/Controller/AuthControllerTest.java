@@ -1,6 +1,7 @@
-package at.technikum.springrestbackend.controller;
+package at.technikum.springrestbackend.Controller;
 
 
+import at.technikum.springrestbackend.controller.AuthController;
 import at.technikum.springrestbackend.dto.TokenRequest;
 import at.technikum.springrestbackend.dto.TokenResponse;
 import at.technikum.springrestbackend.service.AuthService;

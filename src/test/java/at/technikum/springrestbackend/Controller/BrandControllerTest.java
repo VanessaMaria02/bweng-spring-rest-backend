@@ -1,5 +1,6 @@
-package at.technikum.springrestbackend.controller;
+package at.technikum.springrestbackend.Controller;
 
+import at.technikum.springrestbackend.controller.BrandController;
 import at.technikum.springrestbackend.model.Brand;
 import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.service.BrandService;

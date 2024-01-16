@@ -1,4 +1,5 @@
-package at.technikum.springrestbackend.controller;
+package at.technikum.springrestbackend.Controller;
+import at.technikum.springrestbackend.controller.UserController;
 import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.service.UserService;
 import at.technikum.springrestbackend.util.UserValidator;
