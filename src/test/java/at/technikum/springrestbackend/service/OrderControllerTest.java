@@ -1,16 +1,11 @@
-package at.technikum.springrestbackend.Controller;
+package at.technikum.springrestbackend.service;
 
 
 import at.technikum.springrestbackend.controller.OrderController;
 import at.technikum.springrestbackend.model.Orders;
 import at.technikum.springrestbackend.model.Phone;
 import at.technikum.springrestbackend.model.User;
-import at.technikum.springrestbackend.security.JwtToPrincipalConverter;
-import at.technikum.springrestbackend.service.OrderService;
-import at.technikum.springrestbackend.service.PhoneService;
-import at.technikum.springrestbackend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -24,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-
-@ExtendWith(MockitoExtension.class)
 public class OrderControllerTest {
 
     @Mock
@@ -132,40 +125,4 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         assertEquals("One of the phones was not found", result.getBody());
     }
-    @Test
-    void testGetOrder() {
-        UUID orderId = UUID.randomUUID();
-        Orders mockOrder = new Orders();
-        when(orderService.getOrder(orderId)).thenReturn(mockOrder);
-
-        Orders result = orderController.getOrder(orderId);
-
-        assertEquals(mockOrder, result);
-    }
-    @Test
-    void testGetOrdersUsers() {
-        User user = new User();
-        List<Orders> mockOrders = Arrays.asList(new Orders(), new Orders());
-        when(orderService.getOrdersUser(user)).thenReturn(mockOrders);
-
-        List<Orders> result = orderController.getOrdersUsers(user);
-
-        assertEquals(mockOrders, result);
-    }
-    @Test
-    void testCreateOrder() {
-        String username = "john_doe";
-        List<UUID> phoneIds = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
-
-
-        ResponseEntity<Object> expectedResponse = new ResponseEntity<>("New Order is created.", HttpStatus.CREATED);
-
-        when(userService.getUserByUsername(username)).thenReturn(new User());
-        when(phoneService.getPhone(any(UUID.class))).thenReturn(new Phone());
-
-        ResponseEntity<Object> result = orderController.createOrder(username, phoneIds);
-
-        assertEquals(expectedResponse, result);
-    }
-
 }

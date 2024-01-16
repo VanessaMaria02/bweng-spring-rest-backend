@@ -94,7 +94,12 @@ public class User {
         this.countryCode = countryCode;
 
     }
-
+    public User(UUID id, String username, String password, String role) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
 
     public boolean getStatus() {
         return this.status;

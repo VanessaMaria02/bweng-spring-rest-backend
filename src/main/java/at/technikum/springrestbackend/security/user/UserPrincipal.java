@@ -17,4 +17,7 @@ public class UserPrincipal extends User {
         this.id = id;
         this.role = role;
     }
+    public UUID getId() {
+        return id;
+    }
 }

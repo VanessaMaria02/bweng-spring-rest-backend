@@ -1,10 +1,8 @@
 package at.technikum.springrestbackend.security;
 
-import at.technikum.springrestbackend.security.jwt.JwtAuthenticationFilter;
 import at.technikum.springrestbackend.security.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

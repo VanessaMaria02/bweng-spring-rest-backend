@@ -161,4 +161,29 @@ public class BrandControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
         assertEquals("Brand not found", result.getBody());
     }
+
+    @Test
+    void testAddBrand_ExceptionHandling() {
+        when(brandValidator.validateBrand(any(Brand.class))).thenReturn(Collections.emptyList());
+        when(userService.getUserByUsername(anyString())).thenReturn(new User());
+
+        // Throw an exception in brandService.createBrand to test exception handling
+        doThrow(new RuntimeException("Some error")).when(brandService).createBrand(any(Brand.class));
+
+        ResponseEntity<Object> result = brandController.addBrand("john_doe", new Brand("Brand1", "Picture1"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("An error occurred while processing your request.", result.getBody());
+    }
+    @Test
+    void testUpdateBrand_ExceptionHandling() {
+        when(brandService.updateBrandInfo(anyString(), anyString(), anyString())).thenThrow(new RuntimeException("Some error"));
+
+        ResponseEntity<Object> result = brandController.updateBrand("ExistingBrand", new Brand("UpdatedName", "UpdatedPicture"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("An error occurred while processing your request.", result.getBody());
+    }
+
+
 }

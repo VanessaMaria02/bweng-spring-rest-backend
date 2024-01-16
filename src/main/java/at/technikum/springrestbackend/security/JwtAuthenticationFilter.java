@@ -1,4 +1,4 @@
-package at.technikum.springrestbackend.security.jwt;
+package at.technikum.springrestbackend.security;
 
 
 import at.technikum.springrestbackend.security.user.UserPrincipalAuthenticationToken;

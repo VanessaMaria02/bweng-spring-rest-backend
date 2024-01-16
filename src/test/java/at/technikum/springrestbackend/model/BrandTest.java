@@ -1,4 +1,7 @@
 package at.technikum.springrestbackend.model;
 
-class BrandTest {
+
+public class BrandTest {
+
 }
+

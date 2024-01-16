@@ -1,13 +1,12 @@
 package at.technikum.springrestbackend.controller;
 
 import at.technikum.springrestbackend.model.User;
-import at.technikum.springrestbackend.security.jwt.JwtToPrincipalConverter;
+import at.technikum.springrestbackend.security.JwtToPrincipalConverter;
 import at.technikum.springrestbackend.service.UserService;
 import at.technikum.springrestbackend.util.UserValidator;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

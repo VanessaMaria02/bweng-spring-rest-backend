@@ -131,4 +131,5 @@ public class BrandController {
             return new ResponseEntity<>("Brand not found", HttpStatus.NOT_FOUND);
         }
     }
+
 }
