@@ -1,13 +1,11 @@
-package at.technikum.springrestbackend.Controller;
+package at.technikum.springrestbackend.controller;
 
-import at.technikum.springrestbackend.controller.BrandController;
 import at.technikum.springrestbackend.model.Brand;
 import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.service.BrandService;
 import at.technikum.springrestbackend.service.UserService;
 import at.technikum.springrestbackend.util.BrandValidator;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

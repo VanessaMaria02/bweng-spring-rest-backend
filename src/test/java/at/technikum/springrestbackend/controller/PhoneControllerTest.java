@@ -1,6 +1,5 @@
-package at.technikum.springrestbackend.Controller;
+package at.technikum.springrestbackend.controller;
 
-import at.technikum.springrestbackend.controller.PhoneController;
 import at.technikum.springrestbackend.model.Brand;
 import at.technikum.springrestbackend.model.Phone;
 import at.technikum.springrestbackend.model.User;
