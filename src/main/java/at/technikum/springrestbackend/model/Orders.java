@@ -45,6 +45,12 @@ public class Orders {
         this.user = user;
         this.timestamp = new Timestamp(System.currentTimeMillis());
     }
+    public Orders(UUID id, User user, List<Phone> phones) {
+        this.id = id;
+        this.user = user;
+        this.phones = phones;
+        this.timestamp = new Timestamp(System.currentTimeMillis());
+    }
 
-   public void addPhone(Phone phone){phones.add(phone);}
+    public void addPhone(Phone phone){phones.add(phone);}
 }

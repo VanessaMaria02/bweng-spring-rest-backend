@@ -40,12 +40,12 @@ public class Brand {
     @UpdateTimestamp
     private Instant lastUpdatedOn;
 
- //Not NotBlank because will be set manually
+    //Not NotBlank because will be set manually
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User createdBy;
 
-   // @ManyToOne(fetch = FetchType.LAZY)
+    // @ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "user_id")
     //private User user;
 

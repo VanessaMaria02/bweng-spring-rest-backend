@@ -1,4 +1,4 @@
-package at.technikum.springrestbackend.security.permisson;
+package at.technikum.springrestbackend.security.permission;
 
 import at.technikum.springrestbackend.security.permission.AccessPermission;
 import at.technikum.springrestbackend.security.permission.AccessPermissionEvaluator;

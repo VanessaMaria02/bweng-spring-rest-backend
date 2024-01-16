@@ -1,4 +1,4 @@
-package at.technikum.springrestbackend.security.permisson;
+package at.technikum.springrestbackend.security.permission;
 
 import at.technikum.springrestbackend.model.Phone;
 import at.technikum.springrestbackend.security.permission.AccessPermission;
