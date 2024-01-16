@@ -99,12 +99,8 @@ public class UserController {
             Path directory = Paths.get(directoryPath);
             if (!Files.exists(directory)) {
                 Files.createDirectories(directory);
-                System.out.println("test");
-            }
-            else {
-                System.out.println("test2");
+             }
 
-            }
 
 
              String fileName = file.getOriginalFilename();
