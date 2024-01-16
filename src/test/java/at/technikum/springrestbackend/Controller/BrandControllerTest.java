@@ -39,6 +39,8 @@ public class BrandControllerTest {
     @InjectMocks
     private BrandController brandController;
 
+    private Instant instant;
+
     @Test
     void testGetBrands() {
         List<Brand> mockBrands = Arrays.asList(new Brand("Brand1", "Picture1"), new Brand("Brand2", "Picture2"));
@@ -182,6 +184,38 @@ public class BrandControllerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
         assertEquals("An error occurred while processing your request.", result.getBody());
+    }
+
+    @Test
+    void testDeleteBrand_TokenExpired() {
+        when(brandService.getBrandByname(anyString())).thenReturn(new Brand("BrandToDelete", "Picture"));
+        doThrow(new TokenExpiredException("Token expired", instant)).when(brandService).deleteBrand(anyString());
+
+        ResponseEntity<Object> result = brandController.deleteUser("BrandToDelete");
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+        assertEquals("The JWT Token is expired, pleas login in again", result.getBody());
+    }
+
+    @Test
+    void testDeleteBrand_GenericException() {
+        when(brandService.getBrandByname(anyString())).thenReturn(new Brand("BrandToDelete", "Picture"));
+        doThrow(new RuntimeException("Some error")).when(brandService).deleteBrand(anyString());
+
+        ResponseEntity<Object> result = brandController.deleteUser("BrandToDelete");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("An error occurred while processing your request.", result.getBody());
+    }
+
+    @Test
+    void testDeleteBrand_NotFound() {
+        when(brandService.getBrandByname("NonexistentBrand")).thenReturn(null);
+
+        ResponseEntity<Object> result = brandController.deleteUser("NonexistentBrand");
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertEquals("Brand not found", result.getBody());
     }
 
 

@@ -8,6 +8,7 @@ import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.service.OrderService;
 import at.technikum.springrestbackend.service.PhoneService;
 import at.technikum.springrestbackend.service.UserService;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +40,8 @@ public class OrderControllerTest {
 
     @InjectMocks
     private OrderController orderController;
+
+    private Instant instant;
 
     @BeforeEach
     void setUp() {
@@ -166,5 +170,35 @@ public class OrderControllerTest {
 
         assertEquals(expectedResponse, result);
     }
+    @Test
+    void testHandleOrderCreation_TokenExpiredException() {
+        String username = "john_doe";
+        List<UUID> phoneIds = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
+
+        when(userService.getUserByUsername(username)).thenReturn(new User());
+        when(phoneService.getPhone(any(UUID.class))).thenReturn(new Phone());
+        doThrow(new TokenExpiredException("Expired", instant)).when(orderService).createOrder(any(Orders.class));
+
+        ResponseEntity<Object> result = orderController.createOrder(username, phoneIds);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+        assertEquals("The JWT Token is expired, pleas login in again", result.getBody());
+    }
+
+    @Test
+    void testHandleOrderCreation_GenericException() {
+        String username = "john_doe";
+        List<UUID> phoneIds = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
+
+        when(userService.getUserByUsername(username)).thenReturn(new User());
+        when(phoneService.getPhone(any(UUID.class))).thenReturn(new Phone());
+        doThrow(new RuntimeException("Some error")).when(orderService).createOrder(any(Orders.class));
+
+        ResponseEntity<Object> result = orderController.createOrder(username, phoneIds);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("An error occurred while processing your request.", result.getBody());
+    }
+
 
 }

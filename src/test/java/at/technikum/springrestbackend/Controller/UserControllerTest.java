@@ -10,9 +10,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -384,6 +389,26 @@ public class UserControllerTest {
         // Verify that the result is an empty list for no users found
         assertEquals(Collections.emptyList(), result);
     }
+
+
+
+    @Test
+    void testUploadImage_EmptyFile() {
+        // Create an empty mock MultipartFile
+        MockMultipartFile file = new MockMultipartFile("image", "", "image/jpeg", new byte[0]);
+
+        // Call the uploadImage method on the UserController
+        ResponseEntity<?> result = userController.uploadImage("john_doe", file);
+
+        // Verify that the result is a BAD_REQUEST response
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        assertEquals("Please select a file to upload.", result.getBody());
+    }
+
+
+
+
+
 
 
 

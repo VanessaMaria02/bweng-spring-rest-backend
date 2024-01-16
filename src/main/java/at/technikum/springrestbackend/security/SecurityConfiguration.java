@@ -75,6 +75,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/register").permitAll()
                                 .requestMatchers("/deleteUser/{id}").hasAnyRole("admin", "user")
                                 .requestMatchers("/updateUser/{name}").hasAnyRole("admin", "user")
+                                .requestMatchers("/uploadImage/{username}").hasAnyRole("admin", "user")
                                 .anyRequest().authenticated()
                 );
 

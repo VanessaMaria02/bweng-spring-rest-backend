@@ -13,7 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +76,40 @@ public class PhoneController {
                                               @PathVariable @Valid String brand,
                                               @RequestBody @Valid Phone phone) {
         return handlePhoneCreation(username, brand, phone);
+    }
+
+    @PostMapping("/phones/upload/{id}")
+    public ResponseEntity<?> uploadImage(@PathVariable UUID id, @RequestParam("image") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            String directoryPath = "uploads";
+
+            Path directory = Paths.get(directoryPath);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+            }
+
+
+
+            String fileName = file.getOriginalFilename();
+            Path filePath = directory.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath);
+            Phone phone = phoneService.getPhone(id) ;
+            if(phone == null ){
+                return new ResponseEntity<>("Phone not found", HttpStatus.NOT_FOUND);
+            }
+            phone.setPicture(filePath.toString());
+            return handlePhoneUpdate(id, phone);
+
+
+
+        } catch (IOException ex) {
+            return new ResponseEntity<>("An error occurred while uploading your file.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private ResponseEntity<Object> handlePhoneCreation(String username, String brand, Phone phone) {

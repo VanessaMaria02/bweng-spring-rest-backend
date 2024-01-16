@@ -12,6 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -182,4 +188,41 @@ public class UserController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping("/uploadImage/{username}")
+    public ResponseEntity<?> uploadImage(@PathVariable String username, @RequestParam("image") MultipartFile file) {
+        // Check if the file is not empty
+        if (file == null || file.isEmpty()  ) {
+            return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            // Define the location where you want to save the files
+            String directoryPath = "uploads"; // Replace with your directory path
+
+            // Create the directory if it doesn't exist
+            Path directory = Paths.get(directoryPath);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+            }
+
+
+
+            String fileName = file.getOriginalFilename();
+            Path filePath = directory.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath);
+            User user = userService.getUserByUsername(username);
+            user.setProfilePicture(filePath.toString());
+            return handleUserUpdate(username, user);
+
+
+
+        } catch (IOException ex) {
+            return new ResponseEntity<>("An error occurred while uploading your file.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+    }
+
 }

@@ -16,7 +16,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -188,6 +191,9 @@ class PhoneControllerTest {
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals("Cannot delete the phone. It has associated orders.", response.getBody());
+
+        // Ensure that DataIntegrityViolationException is thrown and caught
+        verify(phoneService, times(1)).deletePhone(phone.getId());
     }
 
     @Test
@@ -275,4 +281,44 @@ class PhoneControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Phone deleted successfully", response.getBody());
     }
+
+
+
+
+    @Test
+    void testUploadImage_PhoneNotFound() throws IOException {
+        // Arrange
+        UUID phoneId = UUID.randomUUID();
+        MultipartFile file = new MockMultipartFile("image", "test-image.jpg", "image/jpeg", "Spring Framework".getBytes());
+
+        when(phoneService.getPhone(phoneId)).thenReturn(null);
+
+        // Act
+        ResponseEntity<?> response = phoneController.uploadImage(phoneId, file);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        verify(phoneService, never()).updatePhoneInfo(any(), any(), any(), anyInt(), anyInt(), anyInt(), anyFloat());
+    }
+
+    @Test
+    void testUploadImage_FileEmpty() throws IOException {
+        // Arrange
+        UUID phoneId = UUID.randomUUID();
+        MultipartFile file = new MockMultipartFile("image", "", "image/jpeg", new byte[0]);
+        Phone mockPhone = new Phone();
+
+        when(phoneService.getPhone(phoneId)).thenReturn(mockPhone);
+
+        // Act
+        ResponseEntity<?> response = phoneController.uploadImage(phoneId, file);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Please select a file to upload.", response.getBody());
+        verify(phoneService, never()).updatePhoneInfo(any(), any(), any(), anyInt(), anyInt(), anyInt(), anyFloat());
+    }
+
+
+
 }
