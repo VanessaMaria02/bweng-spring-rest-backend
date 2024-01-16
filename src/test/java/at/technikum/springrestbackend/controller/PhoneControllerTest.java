@@ -6,14 +6,17 @@ import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.service.BrandService;
 import at.technikum.springrestbackend.service.PhoneService;
 import at.technikum.springrestbackend.service.UserService;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +37,8 @@ class PhoneControllerTest {
 
     @InjectMocks
     private PhoneController phoneController;
+
+    private Instant instant;
 
     @BeforeEach
     void setUp() {
@@ -169,6 +174,34 @@ class PhoneControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Phone not found", response.getBody());
     }
+
+    @Test
+    void testDeletePhone_DataIntegrityViolationException() {
+        UUID phoneId = UUID.randomUUID();
+        Phone phone = new Phone();
+
+        when(phoneService.getPhone(phoneId)).thenReturn(phone);
+        doThrow(new DataIntegrityViolationException("Integrity violation")).when(phoneService).deletePhone(phone.getId());
+
+        ResponseEntity<Object> response = phoneController.deletePhone(phoneId);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Cannot delete the phone. It has associated orders.", response.getBody());
+    }
+
+    @Test
+    void testDeletePhone_GenericException() {
+        UUID phoneId = UUID.randomUUID();
+        Phone phone = new Phone();
+
+        when(phoneService.getPhone(phoneId)).thenReturn(phone);
+        doThrow(new RuntimeException("Some error")).when(phoneService).deletePhone(phone.getId());
+
+        ResponseEntity<Object> response = phoneController.deletePhone(phoneId);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("An error occurred while processing your request.", response.getBody());
+    }
     @Test
     void testCreatePhone_BrandNotFound() {
         String username = "user1";
@@ -182,6 +215,38 @@ class PhoneControllerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("No Brand with that name", response.getBody());
+    }
+
+    @Test
+    void testHandlePhoneCreation_TokenExpiredException() {
+        String username = "user1";
+        String brandName = "Brand1";
+        Phone newPhone = new Phone();
+
+        when(userService.getUserByUsername(username)).thenReturn(new User());
+        when(brandService.getBrandByname(brandName)).thenReturn(new Brand());
+        doThrow(new TokenExpiredException("Expired", instant)).when(phoneService).createPhone(newPhone);
+
+        ResponseEntity<Object> response = phoneController.createPhone(username, brandName, newPhone);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("The JWT Token is expired, pleas login in again", response.getBody());
+    }
+
+    @Test
+    void testHandlePhoneCreation_GenericException() {
+        String username = "user1";
+        String brandName = "Brand1";
+        Phone newPhone = new Phone();
+
+        when(userService.getUserByUsername(username)).thenReturn(new User());
+        when(brandService.getBrandByname(brandName)).thenReturn(new Brand());
+        doThrow(new RuntimeException("Some error")).when(phoneService).createPhone(newPhone);
+
+        ResponseEntity<Object> response = phoneController.createPhone(username, brandName, newPhone);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("An error occurred while processing your request.", response.getBody());
     }
     @Test
     void testUpdatePhone_NotFound() {

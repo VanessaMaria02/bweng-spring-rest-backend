@@ -35,6 +35,8 @@ public class UserControllerTest {
     private User testUser;
     private UUID testUserId;
 
+    private Instant instant;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -107,6 +109,38 @@ public class UserControllerTest {
         // Verify that the result is a BAD_REQUEST response with the expected validation errors
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         assertEquals(Arrays.asList("Error 1", "Error 2"), result.getBody());
+    }
+
+    @Test
+    void testHandleUserCreation_TokenExpiredException() {
+        // Mock the behavior of the UserValidator to return an empty list (no validation errors)
+        when(userValidator.validateUserRegistration(any(User.class))).thenReturn(Arrays.asList());
+
+        // Mock the behavior of the UserService to throw TokenExpiredException
+        when(userService.createUser(any(User.class))).thenThrow(new TokenExpiredException("Expired", instant));
+
+        // Call the handleUserCreation method on the UserController with a valid user
+        ResponseEntity<Object> result = userController.registerUser(new User("john_doe", "P@ssw0rd", "ROLE_user", "john", "doe", "Mr", "john@example.com", null, true, "Am lange Felde", "Wien", 1220, "59/2/3", "AT"));
+
+        // Verify that the result is a UNAUTHORIZED response for TokenExpiredException
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+        assertEquals("The JWT Token is expired, pleas login in again", result.getBody());
+    }
+
+    @Test
+    void testHandleUserCreation_GenericException() {
+        // Mock the behavior of the UserValidator to return an empty list (no validation errors)
+        when(userValidator.validateUserRegistration(any(User.class))).thenReturn(Arrays.asList());
+
+        // Mock the behavior of the UserService to throw a generic exception
+        when(userService.createUser(any(User.class))).thenThrow(new RuntimeException("Some error"));
+
+        // Call the handleUserCreation method on the UserController with a valid user
+        ResponseEntity<Object> result = userController.registerUser(new User("john_doe", "P@ssw0rd", "ROLE_user", "john", "doe", "Mr", "john@example.com", null, true, "Am lange Felde", "Wien", 1220, "59/2/3", "AT"));
+
+        // Verify that the result is an INTERNAL_SERVER_ERROR response for a generic exception
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertEquals("An error occurred while processing your request.", result.getBody());
     }
 
     @Test
@@ -350,7 +384,7 @@ public class UserControllerTest {
         assertEquals(Collections.emptyList(), result);
     }
 
-    
+
 
 }
 
