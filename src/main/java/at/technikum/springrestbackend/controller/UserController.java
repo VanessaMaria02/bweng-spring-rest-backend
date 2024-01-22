@@ -107,6 +107,25 @@ public class UserController {
 
     }
 
+    @DeleteMapping("/deleteUsername/{usernameD}")
+    public ResponseEntity<Object> deleteUser(@PathVariable String usernameD) {
+        String username = JwtToPrincipalConverter.getCurrentUsername();
+        String userRole = JwtToPrincipalConverter.getCurrentUserRole();
+        try{
+            User userToDelete = userService.getUserByUsername(usernameD);
+            if(!Objects.equals(username, usernameD) && !userRole.equals("ROLE_admin")){
+                return new ResponseEntity<>("Only Admins or the actual User can delete a User.", HttpStatus.UNAUTHORIZED);
+            }
+            return handleUserDeletion(userToDelete);
+        } catch (TokenExpiredException e){
+            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
+        }catch (Exception e) {
+            // Handle other exceptions
+            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
     @PutMapping("/updateUser/{name}")
     public ResponseEntity<Object> updateUser(@PathVariable String name, @RequestBody @Valid User updatedUser) {
         return handleUserUpdate(name, updatedUser);

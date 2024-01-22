@@ -40,8 +40,9 @@ public class OrderController {
     public Orders getOrder(@PathVariable UUID id) {
         return orderService.getOrder(id);
     }
-    @GetMapping("/orders/{user}")
-    public List<Orders> getOrdersUsers(@PathVariable User user){
+    @GetMapping("/orders/{username}")
+    public List<Orders> getOrdersUsers(@PathVariable String username){
+        User user = userService.getUserByUsername(username);
         return orderService.getOrdersUser(user);
     }
 
