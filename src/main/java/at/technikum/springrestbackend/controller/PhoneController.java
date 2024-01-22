@@ -86,7 +86,7 @@ public class PhoneController {
         }
 
         try {
-            String directoryPath = "uploads";
+            String directoryPath = "../Frontend/src/pics";
 
             Path directory = Paths.get(directoryPath);
             if (!Files.exists(directory)) {
@@ -103,7 +103,7 @@ public class PhoneController {
             if(phone == null ){
                 return new ResponseEntity<>("Phone not found", HttpStatus.NOT_FOUND);
             }
-            phone.setPicture(filePath.toString());
+            phone.setPicture(fileName);
             return handlePhoneUpdate(id, phone);
 
 

@@ -1,30 +1,36 @@
 package at.technikum.springrestbackend.controller;
 
-import at.technikum.springrestbackend.dto.TokenRequest;
-import at.technikum.springrestbackend.dto.TokenResponse;
 import at.technikum.springrestbackend.model.User;
+import at.technikum.springrestbackend.security.JwtToPrincipalConverter;
 import at.technikum.springrestbackend.service.UserService;
-import at.technikum.springrestbackend.util.PasswordValidator;
+import at.technikum.springrestbackend.util.UserValidator;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.multipart.MultipartFile;
 
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class UserController {
     private final UserService userService;
+    private final UserValidator userValidator;
 
-
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserValidator userValidator) {
         this.userService = userService;
+        this.userValidator = userValidator;
     }
 
     @GetMapping("/users")
@@ -33,67 +39,206 @@ public class UserController {
     }
 
     @GetMapping("/users/userid/{id}")
-    public User getUser(UUID id) {
+    public User getUser(@PathVariable UUID id) {
         return userService.getUser(id);
     }
 
+    @GetMapping("user/role/{username}")
+    public String getUserRole(@PathVariable String username){
+        User user = userService.getUserByUsername(username);
+
+        if(user != null){
+            return user.getRole();
+        }else{
+            return "No user with this name found";
+        }
+
+
+    }
+
     @GetMapping("/users/username/{username}")
-    public User getUserUserName(String username) {
-        return userService.getUserUsername(username);
+    public User getUserUserName(@PathVariable String username) {
+        return userService.getUserByUsername(username);
     }
 
     @GetMapping("/users/role/{role}")
-    public List<User> getUsersRole(int role) {
+    public List<User> getUsersRole(@PathVariable String role) {
         return userService.getUsersRole(role);
     }
 
     @GetMapping("/users/firstname/{firstname}")
-    public List<User> getUsersFirstname(String firstname) {
+    public List<User> getUsersFirstname(@PathVariable String firstname) {
         return userService.getUsersFirstname(firstname);
     }
 
     @GetMapping("/users/lastname/{lastname}")
-    public List<User> getUsersLastname(String lastname) {
+    public List<User> getUsersLastname(@PathVariable String lastname) {
         return userService.getUsersLastname(lastname);
     }
 
     @GetMapping("/users/email/{email}")
-    public User getUserEmail(String email) {
+    public User getUserEmail(@PathVariable String email) {
         return userService.getUserEmail(email);
     }
 
     @GetMapping("/users/country/{country}")
-    public List<User> getUsersCountry(String country) {
+    public List<User> getUsersCountry(@PathVariable String country) {
         return userService.getUsersCountry(country);
     }
 
-    @GetMapping("/users/status/{status}")
-    public List<User> getUsersStatus(boolean status) {
-        return userService.getUsersStatus(status);
-    }
+
+
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
-        if (!isValidRegistration(user)) {
-            return new ResponseEntity<>("Invalid registration data", HttpStatus.BAD_REQUEST);
-        }
-        userService.createUser(user);
-
-        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+    public ResponseEntity<Object> registerUser(@RequestBody @Valid User user) {
+        return handleUserCreation(user);
     }
 
-    private boolean isValidRegistration(User user) {
+    @DeleteMapping("/deleteUser/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
+        try{
+            User userToDelete = userService.getUser(id);
+            return handleUserDeletion(userToDelete);
+        } catch (TokenExpiredException e){
+            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
+        }catch (Exception e) {
+            // Handle other exceptions
+            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-        if (userService.isUsernameTaken(user.getUsername())) {
-            return false;
-        }
-        if (userService.isEmailTaken(user.getEmail())) {
-            return false;
-        }
-        if (!PasswordValidator.isValidPassword(user.getPassword())) {
-            return false;
-        }
-        return true;
     }
+
+    @DeleteMapping("/deleteUsername/{usernameD}")
+    public ResponseEntity<Object> deleteUser(@PathVariable String usernameD) {
+        String username = JwtToPrincipalConverter.getCurrentUsername();
+        String userRole = JwtToPrincipalConverter.getCurrentUserRole();
+        try{
+            User userToDelete = userService.getUserByUsername(usernameD);
+            if(!Objects.equals(username, usernameD) && !userRole.equals("ROLE_admin")){
+                return new ResponseEntity<>("Only Admins or the actual User can delete a User.", HttpStatus.UNAUTHORIZED);
+            }
+            return handleUserDeletion(userToDelete);
+        } catch (TokenExpiredException e){
+            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
+        }catch (Exception e) {
+            // Handle other exceptions
+            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    @PutMapping("/updateUser/{name}")
+    public ResponseEntity<Object> updateUser(@PathVariable String name, @RequestBody @Valid User updatedUser) {
+        return handleUserUpdate(name, updatedUser);
+    }
+
+    private ResponseEntity<Object> handleUserCreation(User user) {
+        List<String> validationErrors = userValidator.validateUserRegistration(user);
+        if (!validationErrors.isEmpty()) {
+            return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
+        }
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        try {
+            userService.createUser(user);
+            return new ResponseEntity<>("User registered successfully", HttpStatus.OK);
+        }catch (TokenExpiredException e){
+            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
+        }catch (Exception e) {
+            // Handle other exceptions
+            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private ResponseEntity<Object> handleUserDeletion(User userToDelete) {
+        if (userToDelete == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        userService.deleteUser(userToDelete.getId());
+        return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+    }
+
+    private ResponseEntity<Object> handleUserUpdate(String name, User updatedUser) {
+        String username = JwtToPrincipalConverter.getCurrentUsername();
+        String userRole = JwtToPrincipalConverter.getCurrentUserRole();
+
+
+        if(!Objects.equals(username, name) && !userRole.equals("ROLE_admin")){
+            return new ResponseEntity<>("Users can only edit there own Profile (except admins)", HttpStatus.UNAUTHORIZED);
+        }
+
+
+            int affectedRows = 0;
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+
+        try{
+            affectedRows = userService.updateUserInfo(
+                    name,
+                    updatedUser.getUsername(),
+                    updatedUser.getPassword(),
+                    updatedUser.getRole(),
+                    updatedUser.getFirstname(),
+                    updatedUser.getLastname(),
+                    updatedUser.getSalutation(),
+                    updatedUser.getEmail(),
+                    updatedUser.getCountryCode(),
+                    updatedUser.getPostalCode(),
+                    updatedUser.getStreet(),
+                    updatedUser.getCity(),
+                    updatedUser.getHouseNumber(),
+                    updatedUser.getProfilePicture(),
+                    updatedUser.getStatus()
+            );
+        }catch (TokenExpiredException e){
+            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
+        }catch (Exception e) {
+            // Handle other exceptions
+            return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+        if (affectedRows > 0) {
+            return new ResponseEntity<>("User info has been updated successfully", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/uploadImage/{username}")
+    public ResponseEntity<?> uploadImage(@PathVariable String username, @RequestParam("image") MultipartFile file) {
+         if (file == null || file.isEmpty()  ) {
+            return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+             String directoryPath = "../Frontend/src/pics";
+
+             Path directory = Paths.get(directoryPath);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+            }
+
+
+
+            String fileName = file.getOriginalFilename();
+            Path filePath = directory.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath);
+            User user = userService.getUserByUsername(username);
+            user.setProfilePicture(fileName);
+            return handleUserUpdate(username, user);
+
+
+
+        } catch (IOException ex) {
+            return new ResponseEntity<>("An error occurred while uploading your file.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+    }
+
 }
-
-
