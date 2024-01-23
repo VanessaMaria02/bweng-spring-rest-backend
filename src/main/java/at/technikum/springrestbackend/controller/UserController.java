@@ -92,6 +92,14 @@ public class UserController {
     public ResponseEntity<Object> registerUser(@RequestBody @Valid User user) {
         return handleUserCreation(user);
     }
+    @PutMapping("/{userId}/status")
+    public ResponseEntity<String> updateUserStatus(
+            @PathVariable UUID userId,
+            @RequestParam(name = "newStatus") boolean newStatus) {
+
+        userService.updateUserStatus(userId, newStatus);
+        return ResponseEntity.ok("User status updated successfully.");
+    }
 
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
@@ -146,7 +154,6 @@ public class UserController {
         }catch (TokenExpiredException e){
             return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
         }catch (Exception e) {
-            // Handle other exceptions
             return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -168,13 +175,9 @@ public class UserController {
         if(!Objects.equals(username, name) && !userRole.equals("ROLE_admin")){
             return new ResponseEntity<>("Users can only edit there own Profile (except admins)", HttpStatus.UNAUTHORIZED);
         }
-
-
             int affectedRows = 0;
-
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-
         try{
             affectedRows = userService.updateUserInfo(
                     name,
