@@ -130,7 +130,7 @@ public class PhoneController {
 
     try{
         phoneService.createPhone(phone);
-        return new ResponseEntity<>("New phone is saved.", HttpStatus.CREATED);
+        return new ResponseEntity<>(phone.getId(), HttpStatus.CREATED);
     }catch (TokenExpiredException e){
         return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
     }catch (Exception e) {
