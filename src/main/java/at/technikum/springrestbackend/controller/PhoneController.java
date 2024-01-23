@@ -85,7 +85,7 @@ public class PhoneController {
         }
 
         try {
-            String directoryPath = "uploads";
+            String directoryPath = "../Frontend/src/pics";
 
             Path directory = Paths.get(directoryPath);
             if (!Files.exists(directory)) {

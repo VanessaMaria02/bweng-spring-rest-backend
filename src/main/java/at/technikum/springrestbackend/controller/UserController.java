@@ -220,7 +220,7 @@ public class UserController {
 
         try {
             // Define the location where you want to save the files
-            String directoryPath = "uploads"; // Replace with your directory path
+            String directoryPath = "../Frontend/src/pics"; // Replace with your directory path
 
             // Create the directory if it doesn't exist
             Path directory = Paths.get(directoryPath);
