@@ -78,8 +78,9 @@ public class PhoneController {
         return handlePhoneCreation(username, brand, phone);
     }
 
-    @PostMapping("/phones/upload/{id}")
-    public ResponseEntity<?> uploadImage(@PathVariable UUID id, @RequestParam("image") MultipartFile file) {
+    @PostMapping("/phones/upload/{id2}")
+    public ResponseEntity<?> uploadImage(@PathVariable String id2, @RequestParam("image") MultipartFile file) {
+        UUID id = UUID.fromString(id2);
         if (file == null || file.isEmpty()) {
             return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
         }
@@ -102,7 +103,7 @@ public class PhoneController {
             if(phone == null ){
                 return new ResponseEntity<>("Phone not found", HttpStatus.NOT_FOUND);
             }
-            phone.setPicture(filePath.toString());
+            phone.setPicture(fileName);
             return handlePhoneUpdate(id, phone);
 
 
@@ -185,7 +186,7 @@ public class PhoneController {
        int affectedRows = 0;
 
        try {
-           affectedRows = phoneService.updatePhoneInfo(id, updatedPhone.getName(), updatedPhone.getDescription(),updatedPhone.getDisplaySize(),updatedPhone.getMemory(),updatedPhone.getBattery(),updatedPhone.getPrice());
+           affectedRows = phoneService.updatePhoneInfo(id, updatedPhone.getName(), updatedPhone.getDescription(),updatedPhone.getDisplaySize(),updatedPhone.getMemory(),updatedPhone.getBattery(),updatedPhone.getPrice(), updatedPhone.getPicture());
 
        }catch (TokenExpiredException e){
            return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);

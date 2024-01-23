@@ -92,14 +92,6 @@ public class UserController {
     public ResponseEntity<Object> registerUser(@RequestBody @Valid User user) {
         return handleUserCreation(user);
     }
-    @PutMapping("/{userId}/status")
-    public ResponseEntity<String> updateUserStatus(
-            @PathVariable UUID userId,
-            @RequestParam(name = "newStatus") boolean newStatus) {
-
-        userService.updateUserStatus(userId, newStatus);
-        return ResponseEntity.ok("User status updated successfully.");
-    }
 
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
@@ -154,6 +146,7 @@ public class UserController {
         }catch (TokenExpiredException e){
             return new ResponseEntity<>("The JWT Token is expired, pleas login in again", HttpStatus.UNAUTHORIZED);
         }catch (Exception e) {
+            // Handle other exceptions
             return new ResponseEntity<>("An error occurred while processing your request.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -175,9 +168,13 @@ public class UserController {
         if(!Objects.equals(username, name) && !userRole.equals("ROLE_admin")){
             return new ResponseEntity<>("Users can only edit there own Profile (except admins)", HttpStatus.UNAUTHORIZED);
         }
+
+
             int affectedRows = 0;
+
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+
         try{
             affectedRows = userService.updateUserInfo(
                     name,
@@ -213,17 +210,14 @@ public class UserController {
 
     @PostMapping("/uploadImage/{username}")
     public ResponseEntity<?> uploadImage(@PathVariable String username, @RequestParam("image") MultipartFile file) {
-        // Check if the file is not empty
-        if (file == null || file.isEmpty()  ) {
+         if (file == null || file.isEmpty()  ) {
             return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            // Define the location where you want to save the files
-            String directoryPath = "../Frontend/src/pics"; // Replace with your directory path
+             String directoryPath = "../Frontend/src/pics";
 
-            // Create the directory if it doesn't exist
-            Path directory = Paths.get(directoryPath);
+             Path directory = Paths.get(directoryPath);
             if (!Files.exists(directory)) {
                 Files.createDirectories(directory);
             }
@@ -235,7 +229,7 @@ public class UserController {
 
             Files.copy(file.getInputStream(), filePath);
             User user = userService.getUserByUsername(username);
-            user.setProfilePicture(filePath.toString());
+            user.setProfilePicture(fileName);
             return handleUserUpdate(username, user);
 
 
