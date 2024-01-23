@@ -2,6 +2,7 @@ package at.technikum.springrestbackend.service;
 
 import at.technikum.springrestbackend.model.Brand;
 import at.technikum.springrestbackend.model.Phone;
+import at.technikum.springrestbackend.model.User;
 import at.technikum.springrestbackend.repository.PhoneRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,11 @@ public class PhoneService {
         return phoneRepository.findByBattery(battery);
     }
 
+    public List<Phone> getPhoneByName(String name) {
+        return phoneRepository.findByName(name);
+    }
+
+
     public List<Phone> getPhonesPrice(float price) {
         return phoneRepository.findByPrice(price);
     }
@@ -55,8 +61,8 @@ public class PhoneService {
         phoneRepository.deletePhoneById(id);
     }
     @Transactional
-    public int updatePhoneInfo(UUID oldId, String newName, String newDescription, float newDisplaySize, int newMemory, int newBattery, float newPrice) {
-        return phoneRepository.updatePhoneInfo(oldId, newName, newDescription, newDisplaySize, newMemory, newBattery, newPrice);
+    public int updatePhoneInfo(UUID oldId, String newName, String newDescription, float newDisplaySize, int newMemory, int newBattery, float newPrice, String newImage) {
+        return phoneRepository.updatePhoneInfo(oldId, newName, newDescription, newDisplaySize, newMemory, newBattery, newPrice, newImage);
     }
 }
 
