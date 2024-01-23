@@ -31,7 +31,7 @@ public interface PhoneRepository extends CrudRepository<Phone, UUID> {
     @Override
     List<Phone> findAll();
     @Modifying
-    @Query("UPDATE Phone p SET p.name = :newName, p.description = :newDescription, p.displaySize = :newDisplaySize, p.memory = :newMemory, p.battery = :newBattery, p.price = :newPrice  WHERE p.id = :oldId")
-    int updatePhoneInfo(@Param("oldId") UUID oldId, @Param("newName") String newName, @Param("newDescription") String newDescription, @Param("newDisplaySize") float newDisplaySize, @Param("newMemory") int newMemory, @Param("newBattery") int newBattery, @Param("newPrice") float newPrice);
+    @Query("UPDATE Phone p SET p.name = :newName, p.description = :newDescription, p.displaySize = :newDisplaySize, p.memory = :newMemory, p.battery = :newBattery, p.price = :newPrice, p.picture = :newImage WHERE p.id = :oldId")
+    int updatePhoneInfo(@Param("oldId") UUID oldId, @Param("newName") String newName, @Param("newDescription") String newDescription, @Param("newDisplaySize") float newDisplaySize, @Param("newMemory") int newMemory, @Param("newBattery") int newBattery, @Param("newPrice") float newPrice, @Param("newImage") String newImage);
 }
 
