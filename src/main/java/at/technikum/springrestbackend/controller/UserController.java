@@ -61,6 +61,11 @@ public class UserController {
         return userService.getUserByUsername(username);
     }
 
+    @GetMapping("/user/image/{username}")
+    public String getUserImage(@PathVariable String username) {
+        return userService.getUserByUsername(username).getProfilePicture();
+    }
+
     @GetMapping("/users/role/{role}")
     public List<User> getUsersRole(@PathVariable String role) {
         return userService.getUsersRole(role);
